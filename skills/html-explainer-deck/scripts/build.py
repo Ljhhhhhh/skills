@@ -348,7 +348,9 @@ def L_agenda(s, d):
         warn(s, f'{n_items} agenda items; >16 will overflow — group or trim')
     def item(it, num):
         tgt = d['titles'].get(plain(it))
-        go = f' data-go="{tgt}"' if tgt else ''
+        if not tgt:
+            warn(s, f'agenda item has no matching page title: {plain(it)}')
+        go = f' data-go="{tgt}" role="button" tabindex="0"' if tgt else ''
         return f'<div class="item"{go}{A()}><i>{num}</i><p>{fmt(it)}</p></div>'
     h = [f'<section class="slide agenda full {d["g"]}" data-title="{html.escape(plain(s.get("title", "")))}"><div class="hd">', kicker(s),
          f'<h2{A()}>{fmt(s.get("title", ""))}</h2></div><div class="body">']
@@ -470,6 +472,11 @@ def build(md_text, tpl_text, extra_css=''):
     titles, sec_points, auto_agenda, groups = {}, {}, [], []
     pno, cur_sec, cur_sec_title = 0, None, ''
     for k, s in enumerate(slides):
+        title = plain(s.get('title', ''))
+        if title and s['type'] != 'agenda':
+            if title in titles:
+                warn(s, f'duplicate page title makes agenda targets ambiguous: {title}')
+            titles[title] = k + 1
         if s['type'] == 'section':
             cur_sec, cur_sec_title = s['_idx'], s.get('title', ''); sec_points[cur_sec] = []; groups.append(0)
         if s['type'] == 'point':
@@ -478,6 +485,11 @@ def build(md_text, tpl_text, extra_css=''):
             if cur_sec:
                 sec_points[cur_sec].append((pno, s.get('title', ''))); groups[-1] += 1
             auto_agenda.append([plain(cur_sec_title), s.get('title', '')] if cur_sec else [s.get('title', '')])
+    if len(groups) > 1 and not any(s['type'] == 'agenda' for s in slides):
+        warn(slides[0], 'multi-section deck needs an agenda before the first section')
+    for s in slides:
+        if s['type'] == 'agenda' and any(x['type'] == 'section' for x in slides[:s['_idx']-1]):
+            warn(s, 'place the topic agenda before the first section')
     # count claims like "9 条" / "12 points" must match the real number of point slides
     for s in slides:
         if s['type'] in ('cover', 'agenda', 'statement', 'loop', 'end') and pno:

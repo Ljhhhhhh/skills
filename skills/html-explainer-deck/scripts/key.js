@@ -27,6 +27,33 @@ let fails = 0; const ok = (c, m) => { console.log((c ? 'PASS ' : 'FAIL ') + m); 
   await p.mouse.click(200, 450); await p.waitForTimeout(300); s = await st(); ok(s.idx === 1, `click left → ${s.idx}`);
   for (let i = 0; i < N + 2; i++) { await p.keyboard.press('ArrowRight'); await p.waitForTimeout(60); }
   s = await st(); ok(s.act === 1 && s.idx === N, `rapid ${N + 2}× → stays single-active at ${s.idx}`);
+  // Persistent controls and the page directory must work without whole-page click navigation.
+  ok(await p.locator('#directory').count() === 1, 'persistent directory control exists');
+  if (await p.locator('#directory').count()) {
+    await p.keyboard.press('Home');
+    ok(await p.locator('#prev').isDisabled(), 'previous disabled on first slide');
+    await p.locator('#next').click();
+    ok((await st()).idx === 2, 'next button advances exactly once');
+    await p.locator('#prev').click();
+    ok((await st()).idx === 1, 'previous button goes back exactly once');
+    await p.locator('#directory').click();
+    ok(await p.locator('#overview').evaluate(d => d.open) && await p.locator('#directory').getAttribute('aria-expanded') === 'true', 'directory button opens overview');
+    ok(await p.locator('.overview-card').count() === N, 'overview includes every slide');
+    await p.locator('.overview-card').nth(2).press('Enter');
+    ok((await st()).idx === 3 && !(await p.locator('#overview').evaluate(d => d.open)), 'keyboard selects overview page and returns to presentation');
+    await p.keyboard.press('o');
+    await p.keyboard.press('Escape');
+    ok((await st()).idx === 3 && await p.locator('#directory').evaluate(e => e === document.activeElement), 'Escape preserves page and returns focus to directory');
+    const agenda = p.locator('.slide.agenda [data-go]').first();
+    if (await agenda.count()) {
+      const target = Number(await agenda.getAttribute('data-go'));
+      await p.evaluate(() => window.__go([...document.querySelectorAll('.slide')].findIndex(s => s.classList.contains('agenda')), true));
+      await agenda.press('Enter');
+      ok((await st()).idx === target, 'agenda item supports Enter without extra page turn');
+    }
+    await p.keyboard.press('End');
+    ok(await p.locator('#next').isDisabled(), 'next disabled on last slide');
+  }
   ok(!errs.length, 'no page errors' + (errs.length ? ': ' + errs.join(' | ') : ''));
   const m = await b.newPage({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true });
   await m.goto(url); await m.waitForTimeout(400);
@@ -35,6 +62,13 @@ let fails = 0; const ok = (c, m) => { console.log((c ? 'PASS ' : 'FAIL ') + m); 
   const ms = await m.evaluate(s => [...document.querySelectorAll(s)].findIndex(x => x.classList.contains('active')) + 1, sel);
   ok(ms === 2, `mobile swipe left → ${ms}`);
   const mm = await m.evaluate(() => document.body.classList.contains('m')); ok(mm, 'mobile layout class applied at 390px');
+  if (await m.locator('#directory').count()) {
+    await m.locator('#directory').click();
+    const mobileOverview = await m.evaluate(() => ({ width: document.querySelector('#overview').clientWidth, scroll: document.querySelector('#overview').scrollWidth, size: document.querySelector('#directory').getBoundingClientRect().height }));
+    ok(mobileOverview.scroll <= mobileOverview.width + 1 && mobileOverview.size >= 44, 'mobile directory has no horizontal overflow and 44px touch target');
+    await m.locator('.overview-card').last().click();
+    ok(await m.evaluate(() => window.__deck.index + 1) === N, 'mobile directory can reach the final slide');
+  }
   await b.close();
   console.log(fails ? `== ${fails} FAIL` : '== ALL PASS'); process.exit(fails ? 1 : 0);
 })().catch(e => { console.error(e); process.exit(2); });
