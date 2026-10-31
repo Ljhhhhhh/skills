@@ -55,7 +55,12 @@ button:focus-visible,[data-go]:focus-visible{outline:3px solid var(--violet);out
 #page-count b{color:var(--nav-fg);font-weight:800}
 .slide>.foot .pg{display:none}
 @media(max-width:759px){#controls{left:auto;right:14px;bottom:max(12px,env(safe-area-inset-bottom));gap:8px;justify-content:flex-end}#controls #fs{display:grid}#page-count{min-width:70px;font-size:16px}#controls button{padding:0}body.m #mfoot{bottom:74px}}
-@media(prefers-reduced-motion:reduce){#controls button{transition:none}}
+/* Keep the fullscreen hotspot active while the controls fade out. */
+#controls{transition:opacity .3s ease}
+:root:fullscreen #controls{opacity:0}
+:root:fullscreen #controls::before{content:"";position:absolute;inset:-24px -22px -18px;z-index:-1}
+:root:fullscreen #controls:hover,:root:fullscreen #controls:focus-within{opacity:1}
+@media(prefers-reduced-motion:reduce){#controls,#controls button{transition:none}}
 
 #controls[data-theme="section"]{--nav-bg:color-mix(in srgb,var(--nav-ac) 16%,var(--paper));--nav-fg:var(--ink);--nav-muted:var(--ink2);--nav-border:color-mix(in srgb,var(--ink) 25%,transparent);--nav-hover:color-mix(in srgb,var(--nav-ac) 30%,var(--paper))}
 #controls[data-theme="dark"]{--nav-bg:color-mix(in srgb,var(--ink) 92%,var(--paper));--nav-fg:var(--paper);--nav-muted:var(--paper2);--nav-border:color-mix(in srgb,var(--paper) 28%,transparent);--nav-hover:color-mix(in srgb,var(--ink) 80%,var(--paper))}

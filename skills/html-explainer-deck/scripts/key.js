@@ -76,6 +76,25 @@ let fails = 0; const ok = (c, m) => { console.log((c ? 'PASS ' : 'FAIL ') + m); 
     const dark = await p.locator('#prev').evaluate(e => getComputedStyle(e).color);
     ok(light !== dark, 'navigation foreground adapts between light and dark slides');
   }
+  if (await p.locator('#controls').count()) {
+    await p.mouse.move(800, 100);
+    await p.evaluate(() => document.activeElement.blur());
+    await p.keyboard.press('f');
+    await p.waitForTimeout(400);
+    ok(await p.evaluate(() => !!document.fullscreenElement), 'F enters browser fullscreen');
+    const opacity = () => p.locator('#controls').evaluate(e => Number(getComputedStyle(e).opacity));
+    ok(await opacity() < .05, 'fullscreen hides idle navigation');
+    const box = await p.locator('#controls').boundingBox();
+    await p.mouse.move(box.x - 12, box.y + box.height / 2);
+    await p.waitForTimeout(400);
+    ok(await opacity() > .95, 'fullscreen navigation fades in over the expanded hotspot');
+    await p.mouse.move(800, 100); await p.waitForTimeout(400);
+    ok(await opacity() < .05, 'fullscreen navigation fades out when pointer leaves');
+    await p.locator('#directory').focus(); await p.waitForTimeout(400);
+    ok(await opacity() > .95, 'keyboard focus reveals fullscreen controls');
+    await p.keyboard.press('f'); await p.waitForTimeout(400);
+    ok(await p.evaluate(() => !document.fullscreenElement) && await opacity() > .95, 'F exits fullscreen and restores visible navigation');
+  }
   ok(!errs.length, 'no page errors' + (errs.length ? ': ' + errs.join(' | ') : ''));
   const m = await b.newPage({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true });
   await m.goto(url); await m.waitForTimeout(400);
