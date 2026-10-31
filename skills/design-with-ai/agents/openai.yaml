@@ -1,0 +1,4 @@
+interface:
+  display_name: "AI 创意设计工作流"
+  short_description: "从随机种子到独立评审，制作有鲜明身份且经过真实页面验证的设计"
+  default_prompt: "使用 $design-with-ai，根据我的材料与目标完成设计，进行独立截图评审并据此优化。"
