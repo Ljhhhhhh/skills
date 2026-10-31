@@ -1,0 +1,13 @@
+{
+  "name": "html-explainer-deck",
+  "version": "1.0.0",
+  "description": "Build and verify standalone HTML explainer decks",
+  "keywords": [],
+  "author": "",
+  "license": "MIT",
+  "type": "commonjs",
+  "dependencies": {
+    "playwright-core": "^1.64.1"
+  },
+  "private": true
+}

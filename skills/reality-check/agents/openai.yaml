@@ -1,0 +1,4 @@
+interface:
+  display_name: "关键判断的现实检验"
+  short_description: "围绕关键选择取得可追溯证据，检验假设并提出继续、调整或停止建议"
+  default_prompt: "使用 $reality-check 检验我当前选择最关键的假设，取得能影响取舍的实际证据，并建议下一步。"

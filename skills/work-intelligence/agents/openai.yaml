@@ -1,0 +1,4 @@
+interface:
+  display_name: "工作复盘与经验沉淀"
+  short_description: "复盘关键事件、回看改进效果，并将有依据的重复方法沉淀为可复用技能"
+  default_prompt: "请使用 $work-intelligence 复盘指定的对话或工作记录，提炼有依据的可复用方法，优先给出已有 Skill 的改进建议，并说明适用边界和验证方式。"
