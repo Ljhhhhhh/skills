@@ -40,13 +40,26 @@ body{display:flex;align-items:center;justify-content:center;user-select:none;-we
 .foot .pg{font-family:var(--num);font-variant-numeric:tabular-nums;color:var(--ink2)}
 .foot .pg b{color:var(--ink);font-weight:700}
 #mfoot{display:none}
-#controls{position:fixed;left:50%;transform:translateX(-50%);bottom:12px;z-index:30;display:flex;align-items:center;gap:8px;padding:6px;border:1px solid rgba(23,24,59,.18);border-radius:16px;background:var(--paper);color:var(--ink);box-shadow:var(--card)}
-#controls button,#overview-close{min-width:44px;min-height:44px;padding:0 12px;border:1px solid rgba(23,24,59,.2);border-radius:10px;background:var(--paper);color:var(--ink);font:600 16px var(--sans)}
-#controls button:not(:disabled),#overview-close,[data-go],.overview-card{cursor:pointer}
-#controls button:disabled{opacity:.4;cursor:default}
-#controls button:not(:disabled):hover,#overview-close:hover{background:var(--paper2);border-color:var(--violet)}
+#overview-close{min-width:44px;min-height:44px;padding:0 12px;border:1px solid rgba(23,24,59,.2);border-radius:10px;background:var(--paper);color:var(--ink);font:600 16px var(--sans);cursor:pointer}
+#overview-close:hover{background:var(--paper2);border-color:var(--violet)}
+[data-go],.overview-card{cursor:pointer}
 button:focus-visible,[data-go]:focus-visible{outline:3px solid var(--violet);outline-offset:3px}
-#page-count{min-width:64px;text-align:center;font:600 16px var(--num);font-variant-numeric:tabular-nums}
+/* Keep touch targets independent of slide scaling. */
+#controls{position:fixed;z-index:30;display:flex;align-items:center;left:auto;right:22px;bottom:18px;transform:none;gap:10px;padding:0;border:0;border-radius:0;background:transparent;box-shadow:none;color:var(--ink2);--nav-bg:var(--paper);--nav-fg:var(--ink);--nav-muted:var(--ink2);--nav-border:color-mix(in srgb,var(--ink) 20%,transparent);--nav-hover:var(--paper2)}
+#controls button{width:44px;height:44px;min-width:44px;min-height:44px;padding:0;display:grid;place-items:center;border-radius:14px;border:1px solid color-mix(in srgb,var(--nav-border) 55%,transparent);background:color-mix(in srgb,var(--nav-bg) 24%,transparent);color:var(--nav-fg);backdrop-filter:blur(8px);transition:background .25s,transform .25s,border-color .25s}
+#controls button:not(:disabled){cursor:pointer}
+#controls button svg{width:20px;height:20px}
+#controls button:not(:disabled):is(:hover,:focus-visible){background:var(--nav-hover);transform:translateY(-2px);border-color:var(--nav-ac,var(--violet))}
+#controls button:disabled{opacity:.45;color:var(--nav-muted);cursor:default;background:color-mix(in srgb,var(--nav-bg) 12%,transparent);border-color:color-mix(in srgb,var(--nav-border) 40%,transparent)}
+#page-count{min-width:78px;text-align:center;font:500 17px var(--num);letter-spacing:.08em;color:var(--nav-muted);background:transparent;padding:10px 6px;border-radius:8px;white-space:nowrap}
+#page-count b{color:var(--nav-fg);font-weight:800}
+.slide>.foot .pg{display:none}
+@media(max-width:759px){#controls{left:auto;right:14px;bottom:max(12px,env(safe-area-inset-bottom));gap:8px;justify-content:flex-end}#controls #fs{display:grid}#page-count{min-width:70px;font-size:16px}#controls button{padding:0}body.m #mfoot{bottom:74px}}
+@media(prefers-reduced-motion:reduce){#controls button{transition:none}}
+
+#controls[data-theme="section"]{--nav-bg:color-mix(in srgb,var(--nav-ac) 16%,var(--paper));--nav-fg:var(--ink);--nav-muted:var(--ink2);--nav-border:color-mix(in srgb,var(--ink) 25%,transparent);--nav-hover:color-mix(in srgb,var(--nav-ac) 30%,var(--paper))}
+#controls[data-theme="dark"]{--nav-bg:color-mix(in srgb,var(--ink) 92%,var(--paper));--nav-fg:var(--paper);--nav-muted:var(--paper2);--nav-border:color-mix(in srgb,var(--paper) 28%,transparent);--nav-hover:color-mix(in srgb,var(--ink) 80%,var(--paper))}
+
 #overview{position:fixed;inset:20px;width:calc(100% - 40px);max-width:none;height:calc(100% - 40px);max-height:none;margin:0;padding:24px;border:0;border-radius:20px;background:var(--paper);color:var(--ink);overflow-y:auto}
 #overview::backdrop{background:rgba(23,24,59,.65)}
 .overview-head{position:sticky;top:0;z-index:2;background:var(--paper);padding-bottom:16px;display:flex;justify-content:space-between;align-items:center;gap:16px;margin-bottom:24px}
@@ -65,12 +78,9 @@ button:focus-visible,[data-go]:focus-visible{outline:3px solid var(--violet);out
 .preview-page .axis .pt{opacity:1;transform:none}.preview-page .axis .band,.preview-page .wheel .ringp{stroke-dashoffset:0}
 .preview-page *{animation:none!important}
 @media(max-width:759px){
-  #controls{left:12px;right:12px;transform:none;bottom:max(8px,env(safe-area-inset-bottom));justify-content:center;gap:6px}
-  #controls button{padding:0 10px}#page-count{min-width:54px}
   #overview{inset:8px;width:calc(100% - 16px);height:calc(100% - 16px);padding:16px}
   #overview-pages{grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
   .overview-head h2{font-size:24px}.overview-label{font-size:14px;padding:8px}
-  #fs{display:none}
 }
 
 /* ================= 4. type ================= */
@@ -288,7 +298,7 @@ em{font-style:normal;color:var(--ac)}
 body.m{display:block}
 body.m :not(.preview-page):not(.preview-page *)#stage{width:100vw;height:100vh;height:100dvh;transform:none!important;box-shadow:none}
 body.m :not(.preview-page):not(.preview-page *).slide{padding:34px 22px 146px;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;display:block}
-body.m :not(.preview-page):not(.preview-page *)#fs{display:none}
+
 body.m :not(.preview-page):not(.preview-page *).foot{position:fixed;left:0;right:0;bottom:76px;padding:10px 22px 14px;font-size:13px;background:var(--mbg,var(--paper));box-shadow:0 -10px 14px -6px var(--mbg,var(--paper))}
 body.m :not(.preview-page):not(.preview-page *)#mfoot.inv,body.m :not(.preview-page):not(.preview-page *)#mfoot.inv .pg,body.m :not(.preview-page):not(.preview-page *)#mfoot.inv .pg b{color:rgba(255,255,255,.85)}
 body.m :not(.preview-page):not(.preview-page *).slide .foot{display:none}
@@ -367,11 +377,11 @@ body.m :not(.preview-page):not(.preview-page *).end::after{width:360px;height:36
 <div class="foot" id="mfoot"><span class="brand"><i></i></span><span class="pg"></span></div>
 </div>
 <nav id="controls" aria-label="幻灯片导航">
-<button type="button" id="prev" aria-label="上一页" title="上一页（←）">←</button>
+<button type="button" id="prev" aria-label="上一页" title="上一页（←）"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m14 6-6 6 6 6"/></svg></button>
 <span id="page-count" aria-live="polite" aria-atomic="true"></span>
-<button type="button" id="next" aria-label="下一页" title="下一页（→）">→</button>
-<button type="button" id="directory" aria-label="打开页面目录" aria-expanded="false" aria-controls="overview" title="页面目录（O）">目录 · O</button>
-<button type="button" id="fs" aria-label="全屏" title="全屏（F）">⛶</button>
+<button type="button" id="next" aria-label="下一页" title="下一页（→）"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m10 6 6 6-6 6"/></svg></button>
+<button type="button" id="directory" aria-label="打开页面目录" aria-expanded="false" aria-controls="overview" title="页面目录（O）"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg></button>
+<button type="button" id="fs" aria-label="全屏" title="全屏（F）"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 3H5a2 2 0 0 0-2 2v3m13-5h3a2 2 0 0 1 2 2v3M3 16v3a2 2 0 0 0 2 2h3m8 0h3a2 2 0 0 0 2-2v-3"/></svg></button>
 </nav>
 <dialog id="overview" aria-labelledby="overview-title">
 <div class="overview-head"><div><h2 id="overview-title">页面目录</h2><p id="overview-help">选择页面跳转；Esc 返回演示。</p></div><button type="button" id="overview-close">返回演示</button></div>
@@ -423,10 +433,13 @@ body.m :not(.preview-page):not(.preview-page *).end::after{width:360px;height:36
     cur=n;
     slides.forEach(function(s,i){s.inert=i!==n;s.setAttribute('aria-hidden',String(i!==n));});
     prev.disabled=n===0;next.disabled=n===N-1;
-    document.getElementById('page-count').textContent=pad(n+1)+' / '+pad(N);
+    document.getElementById('page-count').innerHTML='<b>'+pad(n+1)+'</b> / '+pad(N);
     bar.style.width=((n+1)/N*100)+'%';
     mfoot.querySelector('.pg').innerHTML='<b>'+pad(n+1)+'</b> / '+pad(N);
     mfoot.querySelector('.brand').innerHTML='<i></i>'+(n+1)+' · '+(nw.getAttribute('data-title')||'');
+    var controls=document.getElementById('controls');
+    controls.dataset.theme=nw.classList.contains('end')?'dark':nw.classList.contains('sec')?'section':'light';
+    controls.style.setProperty('--nav-ac',getComputedStyle(nw).getPropertyValue('--ac'));
     var bg=getComputedStyle(nw).backgroundColor;var solid=bg&&!/rgba\(0, 0, 0, 0\)|transparent/.test(bg);
     mfoot.style.setProperty('--mbg',solid?bg:'');mfoot.classList.toggle('inv',nw.classList.contains('sec')||nw.classList.contains('end'));
     if(history.replaceState)history.replaceState(null,'','#'+(n+1));

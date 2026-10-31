@@ -54,6 +54,28 @@ let fails = 0; const ok = (c, m) => { console.log((c ? 'PASS ' : 'FAIL ') + m); 
     await p.keyboard.press('End');
     ok(await p.locator('#next').isDisabled(), 'next disabled on last slide');
   }
+  if (await p.locator('#controls').count()) {
+    await p.keyboard.press('Home');
+    await p.mouse.move(800, 100);
+    await p.locator('#next').evaluate(e => e.blur());
+    await p.waitForTimeout(300);
+    const controls = await p.evaluate(() => {
+      const nav = document.querySelector('#controls'), button = document.querySelector('#next');
+      const alpha = color => { const slash = color.match(/\/\s*([\d.]+)/); return slash ? Number(slash[1]) : color.startsWith('rgba') ? Number(color.slice(color.indexOf('(') + 1, -1).split(',')[3]) : color === 'transparent' ? 0 : 1; };
+      const rect = nav.getBoundingClientRect(), buttonRect = button.getBoundingClientRect();
+      return { order: [...nav.children].map(e => e.id).join(','), icons: nav.querySelectorAll('button svg').length, width: buttonRect.width, height: buttonRect.height,
+        right: innerWidth - rect.right, background: getComputedStyle(button).backgroundColor, alpha: alpha(getComputedStyle(button).backgroundColor), countAlpha: alpha(getComputedStyle(document.querySelector('#page-count')).backgroundColor), navAlpha: alpha(getComputedStyle(nav).backgroundColor) };
+    });
+    ok(controls.order === 'prev,page-count,next,directory,fs' && controls.icons === 4, 'icon controls retain navigation order');
+    ok(controls.width >= 44 && controls.height >= 44 && controls.right < 40 && controls.navAlpha === 0, 'controls sit at right with 44px targets and no outer base');
+    ok(controls.alpha > 0 && controls.alpha <= .3 && controls.countAlpha === 0, 'default buttons are translucent and page count has no fill');
+    await p.locator('#next').hover(); await p.waitForTimeout(300);
+    ok(await p.locator('#next').evaluate(e => getComputedStyle(e).backgroundColor) !== controls.background, 'hover strengthens button background');
+    const light = await p.locator('#next').evaluate(e => getComputedStyle(e).color);
+    await p.keyboard.press('End'); await p.mouse.move(800, 100);
+    const dark = await p.locator('#prev').evaluate(e => getComputedStyle(e).color);
+    ok(light !== dark, 'navigation foreground adapts between light and dark slides');
+  }
   ok(!errs.length, 'no page errors' + (errs.length ? ': ' + errs.join(' | ') : ''));
   const m = await b.newPage({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true });
   await m.goto(url); await m.waitForTimeout(400);
@@ -63,6 +85,7 @@ let fails = 0; const ok = (c, m) => { console.log((c ? 'PASS ' : 'FAIL ') + m); 
   ok(ms === 2, `mobile swipe left → ${ms}`);
   const mm = await m.evaluate(() => document.body.classList.contains('m')); ok(mm, 'mobile layout class applied at 390px');
   if (await m.locator('#directory').count()) {
+    ok(await m.locator('#fs').isVisible(), 'mobile keeps fullscreen icon visible');
     await m.locator('#directory').click();
     const mobileOverview = await m.evaluate(() => ({ width: document.querySelector('#overview').clientWidth, scroll: document.querySelector('#overview').scrollWidth, size: document.querySelector('#directory').getBoundingClientRect().height }));
     ok(mobileOverview.scroll <= mobileOverview.width + 1 && mobileOverview.size >= 44, 'mobile directory has no horizontal overflow and 44px touch target');
