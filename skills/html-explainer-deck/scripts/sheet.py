@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 """sheet.py — contact sheet(s) of slide screenshots for one-glance review.
-usage: python3 sheet.py shots/ [--prefix d] [--cols 4] [--per 12] [--width 520]
+usage: python3 sheet.py shots/ [--prefix d] [--cols 5] [--per 20] [--width 420]
 writes shots/sheet-<prefix>-1.png, -2.png … (PIL; falls back to ImageMagick `montage`)."""
 import argparse, glob, os, shutil, subprocess, sys
 ap = argparse.ArgumentParser(); ap.add_argument('dir'); ap.add_argument('--prefix', default='d')
-ap.add_argument('--cols', type=int, default=4); ap.add_argument('--per', type=int, default=12)
-ap.add_argument('--width', type=int, default=520)
+ap.add_argument('--cols', type=int, default=5); ap.add_argument('--per', type=int, default=20)
+ap.add_argument('--width', type=int, default=420)
 a = ap.parse_args()
 files = sorted(f for f in glob.glob(os.path.join(a.dir, a.prefix + '[0-9]*.png')))
 if not files:

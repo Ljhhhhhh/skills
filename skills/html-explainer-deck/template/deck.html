@@ -30,7 +30,7 @@ body{display:flex;align-items:center;justify-content:center;user-select:none;-we
 [data-a="l"]{transform:translateX(-36px)} [data-a="r"]{transform:translateX(36px)} [data-a="s"]{transform:scale(.86)} [data-a="f"]{transform:none}
 .slide:not(.active) [data-a]{transition-delay:0s;transition-duration:.3s}
 .slide.active [data-a]{opacity:1;transform:none}
-@media (prefers-reduced-motion:reduce){[data-a],.slide{transition-duration:.01s!important;transition-delay:0s!important}*{animation-duration:.01s!important}}
+@media (prefers-reduced-motion:reduce){[data-a],.slide,.wn,.bar .fill,.steps::before,.st::after,.wheel .ringp,#bar{transition-duration:.01s!important;transition-delay:0s!important}*{animation-duration:.01s!important}}
 
 /* ================= 3. chrome ================= */
 #bar{position:fixed;left:0;top:0;height:4px;width:0;background:linear-gradient(90deg,var(--coral),var(--sun) 35%,var(--teal) 70%,var(--violet));z-index:20;transition:width .6s var(--ease)}

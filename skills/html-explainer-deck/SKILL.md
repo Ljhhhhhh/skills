@@ -186,9 +186,9 @@ ty: 谢谢
 
 ```bash
 python3 $SK/scripts/build.py deck.md -o deck.html --strict    # 文案预算检查
-node   $SK/scripts/shot.js deck.html --out shots              # 截图 d01..dNN / m01..mNN + 自动查错
-python3 $SK/scripts/sheet.py shots                            # 桌面总览图 shots/sheet-d-*.png（每张 12 页，超过就有 -2、-3，必须每张都看）
-python3 $SK/scripts/sheet.py shots --prefix m --cols 6 --width 300 --per 18   # 手机总览图
+node   $SK/scripts/shot.js deck.html --out shots              # 截图 d01..dNN / m01..mNN + 自动查错（默认启用 reduced-motion 瞬态截图）
+python3 $SK/scripts/sheet.py shots                            # 桌面总览图 shots/sheet-d-*.png（每张 20 页，超过就有 -2，必须每张都看）
+python3 $SK/scripts/sheet.py shots --prefix m --cols 6 --width 300 --per 24   # 手机总览图
 node   $SK/scripts/key.js deck.html                           # 交互测试
 # 或一条：bash $SK/scripts/check.sh deck.md
 ```
@@ -204,7 +204,7 @@ node   $SK/scripts/key.js deck.html                           # 交互测试
 | `OVERLAP` | 自绘 SVG 里文字压到/贴住方框或别的文字 | 挪坐标或缩短文字，留 ≥8 单位空隙 |
 | `JSERR` | 脚本报错 | 先修，交互测试必挂 |
 
-调参：`--wait 3400`（等入场动画播完，动画改长了就加）、`--only 3,7` 只拍某几页、`--mobile-pages 1,5` 、`--mobile off`、`--safe-bottom 60`。装饰元素确实要出界时加 `data-overflow-ok`。
+调参：默认 `--wait 80`（自动启用 reduced-motion 直接截取终态；若需测试实时动画过程可设 `--wait 3400`）、`--only 3,7` 只重拍某几页（单页改字修越界时先用 `--only` 秒级复测，再重跑 `sheet.py`）、`--mobile-pages 1,5`、`--mobile off`、`--safe-bottom 60`。装饰元素确实要出界时加 `data-overflow-ok`。
 
 **看总览图清单**（脚本查不出这些，必须自己 Read 图片看）：
 1. 每页一眼能看出焦点：最大的字就是这页结论。
@@ -214,8 +214,8 @@ node   $SK/scripts/key.js deck.html                           # 交互测试
 5. 节奏：相邻 3 页不是同一版式；section 页把节奏切开。
 6. 封面标题 ≤3 行，右侧图形不压字；结尾页一句话能读完。
 7. 手机图：每页从上到下能顺读，表格可横滑但页面本身不横滑，按钮/标签没有换成一字一行。手机截图只拍第一屏，下面被页脚挡住的是可滚动内容，不算错。
-8. 抽查浅色、章节色和深色页的导航：右下角无底座，SVG 顺序一致；默认透明、hover／focus-visible 增强、禁用态可辨。全屏时验证默认隐藏、热区移入渐显、移出渐隐、键盘聚焦显示与退出恢复；不要把目录的 Esc 返回当作浏览器原生 Esc 退出全屏的验证。手机保留全部图标，控件不遮挡正文与页脚。
-9. 桌面和手机分别打开页面目录，核对完整页数、当前页标记、可滚动范围、标题、按钮与焦点；主题目录跳转目标正确，返回后正文和导航不重叠。
+8. 在截图上核对浅色、章节色和深色页的右下角导航外观：无外层底座，图标与页码清晰可辨，手机端控件不遮挡正文与页脚（按钮顺序、禁用态、目录开关/跳转/焦点恢复、以及 `F` 全屏自动隐藏与热区渐显已由 `key.js` 自动验证，`key.js` `ALL PASS` 即无需再开 GUI 浏览器重复手点）。
+9. 核对主题目录页（`agenda`）排版与分组配色无误（点击与键盘跳转目标已由 `build.py --strict` 和 `key.js` 自动验证）。
 10. 抽 2–3 页单独看原尺寸截图（d01、信息最密的一页、表格页），检查对齐和错字。
 
 修完重新跑 §5 全部命令，直到 build 0 warning、shot `CLEAN`、key `ALL PASS`。
@@ -236,7 +236,7 @@ node   $SK/scripts/key.js deck.html                           # 交互测试
 |---|---|---|
 | 把原文段落直接搬上页 | 每页一大段字、图像是装饰 | 回到 §1，每页只留 problem/action 两句 + 一张图 |
 | 为了不越界把字号改小 | 投屏看不清，SMALL 报错 | 删字或拆页，字号阶梯不动 |
-| 截图等待太短 | 截到半透明/没长出来的条形图，误判 | `--wait` ≥ 最长入场动画 + 0.5s |
+| 自定义动画未受 reduced-motion 控制 | 截到半透明/未展开状态 | 自定义动画加 `@media(prefers-reduced-motion:reduce)` 终态，或传 `--wait 3400` |
 | 只看桌面 | 手机上表格撑破、标签一字一行 | 每次都看手机总览图 |
 | 单元格 ` \| ` 漏空格 | 一行变成一个格子 | 分隔符必须是"空格竖线空格" |
 | 值以 `xx:` 开头被当成字段 | 文案丢半句 | 改写，避免行首 `英文词:` |
@@ -244,7 +244,7 @@ node   $SK/scripts/key.js deck.html                           # 交互测试
 | 编数字 | 读者被误导 | 只用原文数字；没有数字就用 vs/steps 而不是 stats |
 | 对比表 win 列全是 ✗ | 推荐项看起来最差 | ✓/✗ 按「该方案在这一行是否占优」标；"何时用/不用"这类表不设 win |
 | 自绘 SVG 直接放 | 手机上字只有 5–6px，文字贴框 | 包 `.wide` 或做 `.only-m` 竖版；文字离框 ≥8 单位 |
-| 只看第一张总览图 | 后半段的问题漏掉 | 页数 >12 时 sheet-d-2… 都要看 |
+| 只看第一张总览图 | 后半段的问题漏掉 | 页数 >20 时 sheet-d-2… 都要看 |
 | 外链字体/图片 | 离线打开字体变丑、图裂 | 系统字体；图片转内联 SVG 或 base64 |
 | 目录只有排版没有跳转 | 卡片能看但点了无反应 | 用匹配目标标题的 `agenda`，验证点击和键盘跳转 |
 | 只给快捷键或全页点击 | 用户找不到目录或如何翻页 | 保留常驻导航；分别验收桌面、手机与深色页 |

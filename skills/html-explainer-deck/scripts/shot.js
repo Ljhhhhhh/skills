@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /* shot.js — screenshot every slide and report layout defects.
- usage: node shot.js deck.html [--out shots] [--wait 3400] [--desktop 1600x900] [--mobile 390x844]
+ usage: node shot.js deck.html [--out shots] [--wait 80] [--desktop 1600x900] [--mobile 390x844]
                     [--mobile-pages all|1,3,5] [--only 2,7] [--safe-bottom 60] [--min-font 16]
  Output: shots/d01.png… (desktop), shots/m01.png… (mobile). Prints one line per defect:
    OUT   element sticks out of the slide (or into the footer safe zone)
@@ -18,7 +18,7 @@ const file = process.argv[2];
 if (!file || file.startsWith('--')) { console.error('usage: node shot.js deck.html [--out dir]'); process.exit(2); }
 const url = 'file://' + path.resolve(file);
 const out = path.resolve(arg('out', path.join(path.dirname(path.resolve(file)), 'shots')));
-const wait = +arg('wait', 3400), safe = +arg('safe-bottom', 60), minFont = +arg('min-font', 16);
+const wait = +arg('wait', 80), safe = +arg('safe-bottom', 60), minFont = +arg('min-font', 16);
 const [dw, dh] = arg('desktop', '1600x900').split('x').map(Number);
 const mob = arg('mobile', '390x844'), mpages = arg('mobile-pages', 'all'), only = arg('only', '');
 const sel = arg('selector', '.slide');
@@ -99,12 +99,20 @@ function audit(p, i, mobile) {
 (async () => {
   const b = await launch();
   const run = async (vp, prefix, mobile, pick) => {
-    const p = await b.newPage(mobile ? { viewport: vp, deviceScaleFactor: 2, hasTouch: true, isMobile: true } : { viewport: vp });
-    p.on('pageerror', e => say('JSERR', prefix, e.message));
-    p.on('console', m => { if (m.type() === 'error') say('JSERR', prefix, m.text()); });
-    await p.goto(url); await p.waitForTimeout(500);
+    const logs = [];
+    const p = await b.newPage(mobile
+      ? { viewport: vp, deviceScaleFactor: 2, hasTouch: true, isMobile: true, reducedMotion: wait < 500 ? 'reduce' : 'no-preference' }
+      : { viewport: vp, reducedMotion: wait < 500 ? 'reduce' : 'no-preference' });
+    p.on('pageerror', e => logs.push(['issue', `JSERR ${prefix} ${e.message}`]));
+    p.on('console', m => { if (m.type() === 'error') logs.push(['issue', `JSERR ${prefix} ${m.text()}`]); });
+    await p.goto(url);
+    if (wait < 500) {
+      await p.addStyleTag({ content: '*,*::before,*::after{transition-duration:0s!important;transition-delay:0s!important;animation-duration:0s!important;animation-delay:0s!important}' });
+    }
+    await p.evaluate(() => document.fonts && document.fonts.ready ? document.fonts.ready.then(() => {}) : null);
+    await p.waitForTimeout(wait);
     const N = await p.$$eval(sel, s => s.length);
-    if (!N) { say('NOSLIDES no element matches', sel); return 0; }
+    if (!N) { logs.push(['issue', `NOSLIDES no element matches ${sel}`]); await p.close(); return { N: 0, logs }; }
     let how;
     for (let i = 0; i < N; i++) {
       if (!pick(i + 1, N)) continue;
@@ -112,17 +120,25 @@ function audit(p, i, mobile) {
       const f = path.join(out, `${prefix}${String(i + 1).padStart(2, '0')}.png`);
       await p.screenshot({ path: f });
       const iss = await audit(p, i, mobile);
-      iss.forEach(x => say(`${prefix}${String(i + 1).padStart(2, '0')}`, x));
+      iss.forEach(x => logs.push(['issue', `${prefix}${String(i + 1).padStart(2, '0')} ${x}`]));
     }
-    if (how === 'hash') console.log(`[info] ${prefix}: no window.__go, navigated by #hash`);
-    await p.close(); return N;
+    if (how === 'hash') logs.push(['info', `[info] ${prefix}: no window.__go, navigated by #hash`]);
+    await p.close(); return { N, logs };
   };
   const onlySet = only ? new Set(only.split(',').map(Number)) : null;
-  const N = await run({ width: dw, height: dh }, 'd', false, n => !onlySet || onlySet.has(n));
+  const tasks = [run({ width: dw, height: dh }, 'd', false, n => !onlySet || onlySet.has(n))];
   if (mob !== 'off') {
     const [mw, mh] = mob.split('x').map(Number);
     const mset = mpages === 'all' ? null : new Set(mpages.split(',').map(Number));
-    await run({ width: mw, height: mh }, 'm', true, n => (!onlySet || onlySet.has(n)) && (!mset || mset.has(n)));
+    tasks.push(run({ width: mw, height: mh }, 'm', true, n => (!onlySet || onlySet.has(n)) && (!mset || mset.has(n))));
+  }
+  const results = await Promise.all(tasks);
+  const N = results[0].N;
+  for (const r of results) {
+    for (const [kind, line] of r.logs) {
+      if (kind === 'issue') say(line);
+      else console.log(line);
+    }
   }
   await b.close();
   console.log(`== ${N} slides → ${out} · ${problems} issue line(s)` + (problems ? '' : ' · CLEAN'));

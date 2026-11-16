@@ -9,23 +9,28 @@ const { launch, arg } = require('./chrome');
 const file = process.argv[2]; if (!file) { console.error('usage: node key.js deck.html'); process.exit(2); }
 const url = 'file://' + path.resolve(file), sel = arg('selector', '.slide');
 let fails = 0; const ok = (c, m) => { console.log((c ? 'PASS ' : 'FAIL ') + m); if (!c) fails++; };
+async function waitUntil(fn, timeout = 450, step = 25) {
+  const end = Date.now() + timeout;
+  while (Date.now() < end) { if (await fn()) return true; await new Promise(r => setTimeout(r, step)); }
+  return !!(await fn());
+}
 (async () => {
   const b = await launch();
   const p = await b.newPage({ viewport: { width: 1600, height: 900 } });
   const errs = []; p.on('pageerror', e => errs.push(e.message));
   const st = () => p.evaluate(s => { const a = [...document.querySelectorAll(s)]; return { n: a.length, act: a.filter(x => x.classList.contains('active')).length, idx: a.findIndex(x => x.classList.contains('active')) + 1, hash: location.hash }; }, sel);
-  await p.goto(url + '#3'); await p.waitForTimeout(400);
+  await p.goto(url + '#3'); await p.waitForTimeout(60);
   let s = await st(); const N = s.n;
   ok(s.idx === 3 && s.act === 1, `deep link #3 → slide ${s.idx} (active=${s.act})`);
-  await p.keyboard.press('Home'); await p.waitForTimeout(200);
-  for (const k of ['Space', 'ArrowRight', 'PageDown']) { const before = (await st()).idx; await p.keyboard.press(k); await p.waitForTimeout(250); s = await st(); ok(s.idx === before + 1 && s.act === 1, `${k}: ${before} → ${s.idx}`); }
-  await p.keyboard.press('ArrowLeft'); await p.waitForTimeout(250); s = await st(); ok(s.idx === 3, `ArrowLeft → ${s.idx}`);
-  await p.keyboard.press('End'); await p.waitForTimeout(250); s = await st(); ok(s.idx === N && s.hash === '#' + N, `End → ${s.idx}/${N} hash ${s.hash}`);
-  await p.keyboard.press('ArrowRight'); await p.waitForTimeout(250); s = await st(); ok(s.idx === N, `past last stays at ${s.idx}`);
-  await p.keyboard.press('Home'); await p.waitForTimeout(250); s = await st(); ok(s.idx === 1, `Home → ${s.idx}`);
-  await p.mouse.click(1200, 450); await p.waitForTimeout(300); s = await st(); ok(s.idx === 2, `click right → ${s.idx}`);
-  await p.mouse.click(200, 450); await p.waitForTimeout(300); s = await st(); ok(s.idx === 1, `click left → ${s.idx}`);
-  for (let i = 0; i < N + 2; i++) { await p.keyboard.press('ArrowRight'); await p.waitForTimeout(60); }
+  await p.keyboard.press('Home'); await p.waitForTimeout(30);
+  for (const k of ['Space', 'ArrowRight', 'PageDown']) { const before = (await st()).idx; await p.keyboard.press(k); await p.waitForTimeout(30); s = await st(); ok(s.idx === before + 1 && s.act === 1, `${k}: ${before} → ${s.idx}`); }
+  await p.keyboard.press('ArrowLeft'); await p.waitForTimeout(30); s = await st(); ok(s.idx === 3, `ArrowLeft → ${s.idx}`);
+  await p.keyboard.press('End'); await p.waitForTimeout(30); s = await st(); ok(s.idx === N && s.hash === '#' + N, `End → ${s.idx}/${N} hash ${s.hash}`);
+  await p.keyboard.press('ArrowRight'); await p.waitForTimeout(30); s = await st(); ok(s.idx === N, `past last stays at ${s.idx}`);
+  await p.keyboard.press('Home'); await p.waitForTimeout(30); s = await st(); ok(s.idx === 1, `Home → ${s.idx}`);
+  await p.mouse.click(1200, 450); await p.waitForTimeout(40); s = await st(); ok(s.idx === 2, `click right → ${s.idx}`);
+  await p.mouse.click(20, 450); await p.waitForTimeout(40); s = await st(); ok(s.idx === 1, `click left → ${s.idx}`);
+  for (let i = 0; i < N + 2; i++) { await p.keyboard.press('ArrowRight'); await p.waitForTimeout(8); }
   s = await st(); ok(s.act === 1 && s.idx === N, `rapid ${N + 2}× → stays single-active at ${s.idx}`);
   // Persistent controls and the page directory must work without whole-page click navigation.
   ok(await p.locator('#directory').count() === 1, 'persistent directory control exists');
@@ -58,7 +63,7 @@ let fails = 0; const ok = (c, m) => { console.log((c ? 'PASS ' : 'FAIL ') + m); 
     await p.keyboard.press('Home');
     await p.mouse.move(800, 100);
     await p.locator('#next').evaluate(e => e.blur());
-    await p.waitForTimeout(300);
+    await p.waitForTimeout(80);
     const controls = await p.evaluate(() => {
       const nav = document.querySelector('#controls'), button = document.querySelector('#next');
       const alpha = color => { const slash = color.match(/\/\s*([\d.]+)/); return slash ? Number(slash[1]) : color.startsWith('rgba') ? Number(color.slice(color.indexOf('(') + 1, -1).split(',')[3]) : color === 'transparent' ? 0 : 1; };
@@ -69,8 +74,8 @@ let fails = 0; const ok = (c, m) => { console.log((c ? 'PASS ' : 'FAIL ') + m); 
     ok(controls.order === 'prev,page-count,next,directory,fs' && controls.icons === 4, 'icon controls retain navigation order');
     ok(controls.width >= 44 && controls.height >= 44 && controls.right < 40 && controls.navAlpha === 0, 'controls sit at right with 44px targets and no outer base');
     ok(controls.alpha > 0 && controls.alpha <= .3 && controls.countAlpha === 0, 'default buttons are translucent and page count has no fill');
-    await p.locator('#next').hover(); await p.waitForTimeout(300);
-    ok(await p.locator('#next').evaluate(e => getComputedStyle(e).backgroundColor) !== controls.background, 'hover strengthens button background');
+    await p.locator('#next').hover();
+    ok(await waitUntil(async () => (await p.locator('#next').evaluate(e => getComputedStyle(e).backgroundColor)) !== controls.background), 'hover strengthens button background');
     const light = await p.locator('#next').evaluate(e => getComputedStyle(e).color);
     await p.keyboard.press('End'); await p.mouse.move(800, 100);
     const dark = await p.locator('#prev').evaluate(e => getComputedStyle(e).color);
@@ -80,26 +85,24 @@ let fails = 0; const ok = (c, m) => { console.log((c ? 'PASS ' : 'FAIL ') + m); 
     await p.mouse.move(800, 100);
     await p.evaluate(() => document.activeElement.blur());
     await p.keyboard.press('f');
-    await p.waitForTimeout(400);
-    ok(await p.evaluate(() => !!document.fullscreenElement), 'F enters browser fullscreen');
+    ok(await waitUntil(() => p.evaluate(() => !!document.fullscreenElement)), 'F enters browser fullscreen');
     const opacity = () => p.locator('#controls').evaluate(e => Number(getComputedStyle(e).opacity));
-    ok(await opacity() < .05, 'fullscreen hides idle navigation');
+    ok(await waitUntil(async () => (await opacity()) < .05), 'fullscreen hides idle navigation');
     const box = await p.locator('#controls').boundingBox();
     await p.mouse.move(box.x - 12, box.y + box.height / 2);
-    await p.waitForTimeout(400);
-    ok(await opacity() > .95, 'fullscreen navigation fades in over the expanded hotspot');
-    await p.mouse.move(800, 100); await p.waitForTimeout(400);
-    ok(await opacity() < .05, 'fullscreen navigation fades out when pointer leaves');
-    await p.locator('#directory').focus(); await p.waitForTimeout(400);
-    ok(await opacity() > .95, 'keyboard focus reveals fullscreen controls');
-    await p.keyboard.press('f'); await p.waitForTimeout(400);
-    ok(await p.evaluate(() => !document.fullscreenElement) && await opacity() > .95, 'F exits fullscreen and restores visible navigation');
+    ok(await waitUntil(async () => (await opacity()) > .95), 'fullscreen navigation fades in over the expanded hotspot');
+    await p.mouse.move(800, 100);
+    ok(await waitUntil(async () => (await opacity()) < .05), 'fullscreen navigation fades out when pointer leaves');
+    await p.locator('#directory').focus();
+    ok(await waitUntil(async () => (await opacity()) > .95), 'keyboard focus reveals fullscreen controls');
+    await p.keyboard.press('f');
+    ok(await waitUntil(async () => !(await p.evaluate(() => !!document.fullscreenElement)) && (await opacity()) > .95), 'F exits fullscreen and restores visible navigation');
   }
   ok(!errs.length, 'no page errors' + (errs.length ? ': ' + errs.join(' | ') : ''));
   const m = await b.newPage({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true });
-  await m.goto(url); await m.waitForTimeout(400);
+  await m.goto(url); await m.waitForTimeout(60);
   await m.evaluate(() => { const t = x => new Touch({ identifier: 1, target: document.body, clientX: x, clientY: 400 }); document.dispatchEvent(new TouchEvent('touchstart', { touches: [t(300)] })); document.dispatchEvent(new TouchEvent('touchmove', { touches: [t(150)] })); document.dispatchEvent(new TouchEvent('touchend', { changedTouches: [t(100)] })); });
-  await m.waitForTimeout(300);
+  await m.waitForTimeout(40);
   const ms = await m.evaluate(s => [...document.querySelectorAll(s)].findIndex(x => x.classList.contains('active')) + 1, sel);
   ok(ms === 2, `mobile swipe left → ${ms}`);
   const mm = await m.evaluate(() => document.body.classList.contains('m')); ok(mm, 'mobile layout class applied at 390px');

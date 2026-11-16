@@ -1,5 +1,5 @@
 // shared: find a Chrome/Chromium binary and launch it via playwright-core
-const fs = require('fs');
+const fs = require('fs'), path = require('path');
 function findChrome() {
   const c = [process.env.CHROME_PATH,
     '/usr/bin/google-chrome', '/usr/bin/google-chrome-stable', '/usr/bin/chromium', '/usr/bin/chromium-browser',
@@ -12,7 +12,10 @@ function findChrome() {
 }
 async function launch() {
   let pw;
-  try { pw = require('playwright-core'); } catch { pw = require('playwright'); }
+  const nm = path.join(__dirname, '..', 'node_modules');
+  try { pw = require('playwright-core'); } catch {
+    try { pw = require(path.join(nm, 'playwright-core')); } catch { pw = require('playwright'); }
+  }
   const exe = findChrome();
   if (!exe) console.error('[warn] no system Chrome found; set CHROME_PATH or install `playwright` browsers');
   return pw.chromium.launch({ executablePath: exe, args: ['--no-sandbox', '--font-render-hinting=none'] });

@@ -45,9 +45,9 @@ bash scripts/check.sh my/deck.md          # build → 截图查错 → 总览图
 
 ```bash
 python3 scripts/build.py my/deck.md -o my/deck.html --strict
-node scripts/shot.js my/deck.html --out my/shots [--wait 3400] [--only 2,5] [--mobile off]
+node scripts/shot.js my/deck.html --out my/shots [--wait 80] [--only 2,5] [--mobile off]
 python3 scripts/sheet.py my/shots                  # 桌面
-python3 scripts/sheet.py my/shots --prefix m --cols 6 --width 300 --per 18   # 手机
+python3 scripts/sheet.py my/shots --prefix m --cols 6 --width 300 --per 24   # 手机
 node scripts/key.js my/deck.html
 ```
 
