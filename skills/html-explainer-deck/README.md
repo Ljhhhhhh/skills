@@ -13,9 +13,13 @@ scripts/key.js           交互测试（键盘/点击/滑动/#n 直达）
 scripts/sheet.py         总览图（Pillow；没有则用 ImageMagick montage）
 scripts/check.sh         以上一条龙
 scripts/chrome.js        找本机 Chrome 的公共代码
+themes/ink.css           冷纸墨色主题（--theme ink 或文首 theme: ink）
+themes/drafting.css      工程图纸主题（--theme drafting 或文首 theme: drafting）
 template/deck.html       设计系统 + 运行时（占位符 {{TITLE}} {{LANG}} {{BRAND}} {{SLIDES}} {{EXTRA_CSS}}）
 template/example.md      覆盖全部页面类型的示例
-template/example.html    示例生成结果
+template/example.html    示例生成结果（默认主题）
+template/example-ink.html 同一份示例的 ink 主题成品
+template/example-drafting.html 同一份示例的 drafting 主题成品
 trials/roundN/           验证用的三套样例（deck.md / deck.html / shots / 总览图）
 ```
 
@@ -59,8 +63,24 @@ node scripts/key.js my/deck.html
 
 多章节文稿还需在开场后放 `## agenda` 主题目录，自动按正文分组生成。手写条目须与目标页标题一致，构建会报告缺失或歧义目标。`key.js` 同时检查导航按钮、目录、焦点恢复和手机触控。
 
-## 改风格
+## 主题
+
+做新页时三选一：默认（暖纸衬线）、`ink`（冷纸墨色）、`drafting`（工程图纸）。不写 theme 就是默认暖纸衬线主题。
 
 ```bash
-python3 scripts/build.py deck.md --css brand.css     # brand.css 里覆盖 :root 变量即可
+python3 scripts/build.py deck.md --theme ink -o deck.html
+python3 scripts/build.py deck.md --theme drafting -o deck.html
+# 或在 deck.md 文首写 theme: ink / theme: drafting
 ```
+
+`ink`（冷纸墨色）的样式在 `themes/ink.css`，`drafting`（工程图纸：白底细网格、图框标尺、左侧分组色轨，机床绿 / 石油青 / 黄铜 / 青铜）的样式在 `themes/drafting.css`。同一份示例文案的三种成品：`template/example.html`（默认）、`template/example-ink.html`（ink）、`template/example-drafting.html`（drafting）。常驻导航和页面总览会跟随当前页主题。
+
+## 改风格
+
+单篇微调不要改主题文件，把附加 CSS 叠在主题之后：
+
+```bash
+python3 scripts/build.py deck.md --theme ink --css brand.css
+```
+
+不选主题时，`--css brand.css` 会直接叠在默认设计系统上。

@@ -1,0 +1,192 @@
+/* ink（冷纸墨色）：与「你的编程Agent让你成了经理-精讲-PPT版」同一套视觉身份。
+   通过 --theme ink 或文首 theme: ink 叠加到默认设计系统上。
+   不包含某一篇文章的专属版式。 */
+
+/* ----- tokens ----- */
+:root{
+  --paper:#ECEDE8; --paper2:#E0E2DB; --ink:#101216; --ink2:#3A3F48; --mute:#6E747E; --line:#C9CCC4;
+  --blue:#2546D4; --blue2:#DCE3FB; --lime:#D6F25A; --green:#0F7F53; --green2:#D8EEE3; --red:#C2381F; --red2:#F4DDD6;
+  --coral:var(--blue); --violet:var(--ink); --teal:var(--green); --amber:var(--lime); --sun:var(--lime);
+  --g1:var(--blue); --g2:var(--ink); --g3:var(--green); --g4:var(--lime);
+  --ac:var(--blue);
+  --sans:"PingFang SC","HarmonyOS Sans SC","MiSans","Hiragino Sans GB","Microsoft YaHei","Noto Sans CJK SC","Source Han Sans SC","WenQuanYi Micro Hei",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --serif:var(--sans);
+  --mono:"SF Mono","JetBrains Mono",Menlo,Consolas,"Noto Sans Mono CJK SC",monospace;
+  --num:"SF Pro Display","Helvetica Neue","Inter","Segoe UI",Arial,sans-serif;
+  --card:0 10px 28px rgba(16,18,22,.08);
+}
+html,body{background:#C9CBC4}
+#stage{background:var(--paper);box-shadow:0 30px 90px rgba(16,18,22,.25)}
+#stage::before{display:none}
+.slide{padding:70px 88px 92px}
+.g1{--ac:var(--blue)}
+.g2{--ac:var(--ink)}
+.g3{--ac:var(--green)}
+.g4{--ac:var(--lime)}
+
+/* ----- chrome ----- */
+#bar{height:5px;background:var(--blue)}
+.foot{left:88px;right:88px;bottom:30px;font-size:16px;letter-spacing:.06em}
+.foot .brand{gap:10px}
+.foot .brand i{width:12px;height:12px;border-radius:0;background:var(--blue);box-shadow:14px 0 0 var(--ink);margin-right:20px}
+#fs{top:22px;right:24px;border-radius:4px;border-color:rgba(16,18,22,.15);background:rgba(255,255,255,.5)}
+#fs svg{stroke:#101216}
+
+/* ----- type ----- */
+h1,h2,h3,h4,h5{letter-spacing:0}
+.kicker{font-weight:700;letter-spacing:.14em;border-radius:0}
+.kicker::before{border-radius:0;height:4px}
+em{font-style:normal;color:inherit;background:linear-gradient(transparent 58%,var(--lime) 58%,var(--lime) 94%,transparent 94%);padding:0 .06em}
+.mark{background:linear-gradient(transparent 58%,var(--lime) 58%,var(--lime) 94%,transparent 94%);padding:0 .06em}
+.talk{border-radius:4px;border-style:solid}
+.talk::before{border-radius:2px;box-shadow:0 0 0 5px color-mix(in srgb,var(--ac) 16%,transparent)}
+
+/* ----- layouts ----- */
+.cover h1{font-family:var(--sans);letter-spacing:-.01em}
+.cover h1 em{color:inherit}
+.cover .sub span{color:var(--blue)}
+.cover .thesis{border-left-width:6px;border-left-color:var(--lime)}
+.orb .ring{border-color:rgba(16,18,22,.16);border-radius:0}
+.orb .ring2{background:radial-gradient(circle at 35% 30%,#fff,var(--paper2) 70%);box-shadow:inset 0 0 0 1px rgba(16,18,22,.06),0 40px 80px rgba(16,18,22,.08);border-radius:8px}
+.orb .dot{border-radius:4px;box-shadow:0 10px 24px rgba(16,18,22,.15)}
+.orb .core b{font-family:var(--sans)}
+
+.item{border-radius:8px;box-shadow:0 8px 20px rgba(16,18,22,.06)}
+.col .gh{border-bottom-width:4px}
+
+.sec::after{border-radius:0;border-width:80px}
+.sec h2{font-family:var(--sans)}
+.sec li b{border-radius:4px}
+.g4.sec,.sec.g4{color:var(--ink)}
+.g4.sec .big{color:rgba(16,18,22,.18)}
+.g4.sec p{opacity:.88}
+.g4.sec li b{background:rgba(16,18,22,.12);color:var(--ink)}
+.g4.sec .foot,.g4.sec .foot .pg,.g4.sec .foot .pg b{color:var(--ink)}
+.g4.sec em{color:inherit}
+
+.card{border-radius:8px;box-shadow:0 20px 44px rgba(16,18,22,.18)}
+.card::after{border-radius:0;opacity:.18}
+.card .lab{border-radius:2px}
+.card .lab::before{border-radius:0}
+.card p em{color:var(--lime);background:none}
+
+.loop .tags span{border-radius:2px;box-shadow:0 6px 16px rgba(16,18,22,.06)}
+.wn b{border-radius:4px;box-shadow:0 0 0 8px var(--paper)}
+.wn span{border-radius:4px;box-shadow:0 6px 16px rgba(16,18,22,.07)}
+.wc p{font-family:var(--sans)}
+
+.end::after{background:var(--lime);filter:none;opacity:.92;border-radius:0;animation:none}
+.end::before{border-radius:0;background:var(--ink)}
+.end .kicker{--ac:var(--lime)}
+.end h2{font-family:var(--sans)}
+.end h2 em{color:inherit;background:linear-gradient(transparent 58%,var(--lime) 58%,var(--lime) 94%,transparent 94%)}
+.end .rail span{border-radius:2px}
+.end .ty{letter-spacing:.2em}
+
+/* dark ink pages: group 4 content slides (not the lime section divider) */
+.g4:not(.sec):not(.end){background:var(--ink);color:#fff}
+.g4:not(.sec):not(.end) h1,
+.g4:not(.sec):not(.end) h2,
+.g4:not(.sec):not(.end) h3,
+.g4:not(.sec):not(.end) .lead,
+.g4:not(.sec):not(.end) .prob,
+.g4:not(.sec):not(.end) .prob strong{color:#fff}
+.g4:not(.sec):not(.end) .lead,
+.g4:not(.sec):not(.end) .prob{color:rgba(255,255,255,.78)}
+.g4:not(.sec):not(.end) .lead strong,
+.g4:not(.sec):not(.end) .prob strong{color:#fff}
+.g4:not(.sec):not(.end) .kicker{color:var(--lime)}
+.g4:not(.sec):not(.end) .kicker::before{background:var(--lime)}
+.g4:not(.sec):not(.end) .mh .n{-webkit-text-stroke-color:var(--lime)}
+.g4:not(.sec):not(.end) .foot,
+.g4:not(.sec):not(.end) .foot .pg,
+.g4:not(.sec):not(.end) .foot .pg b{color:rgba(255,255,255,.62)}
+.g4:not(.sec):not(.end) .foot .pg b{color:#fff}
+.g4:not(.sec):not(.end) .foot .brand i{background:var(--lime);box-shadow:14px 0 0 #fff}
+.g4 .stp b{box-shadow:0 0 0 8px var(--ink)}
+.g4 .wn b{box-shadow:0 0 0 8px var(--ink)}
+
+/* ----- components: sharper, cooler ----- */
+.panel,.sp,.lane,.stp .bx,.cd,.st,.lst{border-radius:8px;box-shadow:var(--card)}
+.panel{border:1px solid var(--line)}
+.bar .track,.bar .fill{border-radius:2px}
+.bar .fill.weak{background:repeating-linear-gradient(45deg,var(--line) 0 10px,var(--paper2) 10px 20px)}
+.sp{border-radius:8px}
+.sp .layers div{border-radius:4px}
+.sp.bad h5{color:var(--red)}
+.sp.bad .verdict{color:var(--red)}
+.chain .c{border-radius:4px}
+.stp b{border-radius:4px;box-shadow:0 0 0 8px var(--paper)}
+.cd{border-radius:8px;border-top-width:8px}
+.cd .ic{border-radius:4px}
+.cd .v span{border-radius:4px}
+.st{border-radius:8px}
+.st::after{height:6px}
+.tbl{border-radius:8px}
+.tbl th,.tbl td{border-bottom-color:var(--line)}
+.tbl .y{color:var(--green)}
+.tbl .x{color:var(--mute)}
+.lst{border-radius:8px;border-top-width:6px}
+.lst .row{border-bottom-color:var(--line)}
+.lst .row>b{border-radius:4px}
+.chip,.full .chip{border-radius:2px}
+.dg .chip{border-radius:8px}
+.qt{font-family:var(--sans)}
+.qt::before{color:var(--lime)}
+
+/* ----- optional atoms for custom ## html pages ----- */
+.ph{position:absolute;top:26px;right:88px;display:flex;gap:4px;z-index:3}
+.ph span{font-size:16px;font-weight:700;color:var(--mute);padding:4px 12px;border-radius:2px;letter-spacing:.04em}
+.ph span.on{background:var(--ink);color:var(--lime)}
+.no{display:flex;align-items:center;gap:14px;font:700 18px/1 var(--mono);color:var(--ink2);letter-spacing:.08em}
+.no b{font:800 18px/1 var(--mono);background:var(--ink);color:#fff;padding:7px 10px 6px;letter-spacing:.04em}
+.no span{font-family:var(--sans);font-weight:700;letter-spacing:.1em}
+.h{font-size:60px;line-height:1.14;font-weight:900;margin-top:20px;letter-spacing:-.005em;color:var(--ink)}
+.h.s{font-size:52px}
+.h .y{background:linear-gradient(transparent 58%,var(--lime) 58%,var(--lime) 94%,transparent 94%);padding:0 .06em}
+.lede{font-size:24px;line-height:1.65;color:var(--ink2);margin-top:18px;max-width:1180px}
+.lede b{color:var(--ink)}
+.tag{display:inline-block;font-size:16px;font-weight:800;letter-spacing:.12em;padding:5px 10px;border-radius:2px}
+.tag.a{background:var(--blue);color:#fff}
+.tag.y{background:var(--ink);color:var(--lime)}
+.tag.g{background:var(--green);color:#fff}
+.tag.r{background:var(--red);color:#fff}
+.tag.n{background:var(--paper2);color:var(--ink2)}
+code,.cmd{font-family:var(--mono);font-size:.92em;background:rgba(16,18,22,.07);padding:1px 7px;border-radius:3px;white-space:nowrap}
+.src{font-size:17px;color:var(--mute);letter-spacing:.02em}
+.qline{font-size:22px;font-weight:700;line-height:1.55;color:var(--ink);border-left:6px solid var(--lime);padding:4px 0 4px 18px}
+.bad{color:var(--red)}
+.ok{color:var(--green)}
+.g4:not(.sec):not(.end) .h,
+.g4:not(.sec):not(.end) .lede b{color:#fff}
+.g4:not(.sec):not(.end) .lede,.g4:not(.sec):not(.end) .src,.g4:not(.sec):not(.end) .no{color:rgba(255,255,255,.7)}
+.g4:not(.sec):not(.end) .no b{background:var(--lime);color:var(--ink)}
+.g4:not(.sec):not(.end) .ph span{color:rgba(255,255,255,.45)}
+.g4:not(.sec):not(.end) .ph span.on{background:var(--lime);color:var(--ink)}
+.g4:not(.sec):not(.end) .qline{color:#fff}
+.g4 code,.g4 .cmd{background:rgba(255,255,255,.12)}
+
+/* ----- mobile ----- */
+body.m .slide{padding:34px 22px 74px}
+body.m .ph{position:static;top:auto;right:auto;margin:0 0 10px;flex-wrap:wrap}
+body.m .h{font-size:32px;margin-top:10px}
+body.m .h.s{font-size:28px}
+body.m .lede{font-size:16px}
+body.m .qline{font-size:16px}
+body.m #mfoot.inv,body.m #mfoot.inv .pg,body.m #mfoot.inv .pg b{color:rgba(255,255,255,.85)}
+
+
+/* ----- persistent nav + page overview (Codex template chrome) ----- */
+#overview{background:var(--paper);color:var(--ink)}
+#overview::backdrop{background:rgba(16,18,22,.65)}
+.overview-head{background:var(--paper)}
+.overview-head p{color:var(--ink2)}
+#overview-close{border:1px solid var(--line);background:var(--paper);color:var(--ink);border-radius:4px}
+#overview-close:hover{background:var(--paper2);border-color:var(--blue)}
+button:focus-visible,[data-go]:focus-visible,.overview-card:focus-visible{outline-color:var(--blue)}
+.overview-card{background:var(--paper2);color:var(--ink);border-radius:8px}
+.overview-card[aria-current="page"]{border-color:var(--blue)}
+.overview-card:hover{border-color:var(--lime)}
+.overview-preview{background:var(--paper)}
+#controls button{border-radius:4px}
+#controls button:not(:disabled):is(:hover,:focus-visible){border-color:var(--nav-ac,var(--blue))}

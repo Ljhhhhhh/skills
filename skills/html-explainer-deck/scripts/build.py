@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 """build.py — render a deck.md (structured copy) into one self-contained HTML deck.
 
-usage: python3 build.py deck.md [-o out.html] [--template path/to/deck.html] [--strict]
+usage: python3 build.py deck.md [-o out.html] [--theme ink|drafting] [--css extra.css] [--template path/to/deck.html] [--strict]
 
 deck.md grammar (see SKILL.md §2 for the full spec):
-  ---                      optional front matter: title / brand / lang
+  ---                      optional front matter: title / brand / lang / theme
   ## <type>                starts a slide. types: cover statement agenda section point
                            full loop end html  (+ aliases: compare table flow steps
                            stats cards vs lanes bars list chips quote)
@@ -17,8 +17,8 @@ import argparse, html, math, os, re, sys, unicodedata
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 DEFAULT_TPL = os.path.join(HERE, '..', 'template', 'deck.html')
-ACCENTS = ['var(--coral)', 'var(--violet)', 'var(--teal)', 'var(--amber)']
-HEX = ['#FF5B3A', '#6C5CE7', '#0FA394', '#E39400']
+ACCENTS = ['var(--g1)', 'var(--g2)', 'var(--g3)', 'var(--g4)']
+HEX = ACCENTS  # CSS variables so --theme can recolor orbs, loop nodes, and cards
 ALIASES = {'compare': 'table', 'table': 'table', 'flow': 'steps', 'steps': 'steps', 'stats': 'stats',
            'cards': 'cards', 'vs': 'vs', 'lanes': 'lanes', 'bars': 'bars', 'list': 'list',
            'chips': 'chips', 'quote': 'quote'}
@@ -528,16 +528,53 @@ def build(md_text, tpl_text, extra_css=''):
     return page, len(slides)
 
 
+
+def peek_meta(text):
+    meta = {}
+    lines = text.replace('\r\n', '\n').split('\n')
+    if lines and lines[0].strip() == '---':
+        for ln in lines[1:]:
+            if ln.strip() == '---':
+                break
+            m = re.match(r'^([A-Za-z_]+):\s*(.*)$', ln)
+            if m:
+                meta[m.group(1).lower()] = m.group(2).strip()
+    return meta
+
+
+THEMES = {
+    'ink': os.path.join(HERE, '..', 'themes', 'ink.css'),
+    'drafting': os.path.join(HERE, '..', 'themes', 'drafting.css'),
+}
+
+
+def load_extra_css(md_text, theme_arg, css_path):
+    """Theme CSS first (from --theme or front matter theme:), then optional --css overrides."""
+    name = (theme_arg or peek_meta(md_text).get('theme') or '').strip().lower()
+    parts = []
+    if name in ('', 'default', 'classic'):
+        pass
+    elif name in THEMES:
+        parts.append(open(THEMES[name], encoding='utf-8').read())
+    else:
+        avail = ', '.join(['default', *THEMES])
+        sys.exit(f'unknown theme "{name}". available: {avail}')
+    if css_path:
+        parts.append(open(css_path, encoding='utf-8').read())
+    return '\n\n'.join(parts)
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument('md'); ap.add_argument('-o', '--out')
     ap.add_argument('--template', default=DEFAULT_TPL)
-    ap.add_argument('--css', help='extra CSS file appended to the design system (deck-specific overrides)')
+    ap.add_argument('--theme', help='built-in theme name (default, ink, drafting). overrides front matter theme:')
+    ap.add_argument('--css', help='extra CSS file appended after the theme (deck-specific overrides)')
     ap.add_argument('--strict', action='store_true', help='exit 1 if any content-budget warning')
     a = ap.parse_args()
     md = open(a.md, encoding='utf-8').read()
     tpl = open(a.template, encoding='utf-8').read()
-    css = open(a.css, encoding='utf-8').read() if a.css else ''
+    css = load_extra_css(md, a.theme, a.css)
     page, n = build(md, tpl, css)
     out = a.out or os.path.splitext(a.md)[0] + '.html'
     open(out, 'w', encoding='utf-8').write(page)
